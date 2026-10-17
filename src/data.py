@@ -73,6 +73,24 @@ def load_clean_metadata(dataset_path=config.DATASET_PATH, verbose=True):
     return df
 
 
+# Filenames end in a label code, e.g. "...-1.7-m-04-ch.wav" -> cold_hot
+FILENAME_CODES = {"bp": "belly_pain", "bu": "burping", "ch": "cold_hot", "dc": "discomfort",
+                  "hu": "hungry", "lo": "lonely", "sc": "scared", "ti": "tired"}
+
+
+def recording_source(df):
+    """Leading UUID of the filename (one per app user / recording source)."""
+    return df["filename"].str[:36]
+
+
+def drop_cross_labelled_duplicates(df):
+    """Drop clips whose filename code disagrees with their folder. In this dataset these are
+    9 copies in discomfort/ (8 kHz re-encodes) of clips that also sit in cold_hot/, hungry/
+    or lonely/ under their original label."""
+    code = df["filename"].str.rsplit("-", n=1).str[-1].str.removesuffix(".wav")
+    return df[code.map(FILENAME_CODES) == df["label"]].reset_index(drop=True)
+
+
 def encode_labels(labels):
     return pd.Series(labels).map({c: i for i, c in enumerate(config.CLASSES)}).to_numpy()
 
