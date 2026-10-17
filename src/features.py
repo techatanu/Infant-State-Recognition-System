@@ -72,6 +72,24 @@ def feature_names():
             [f"tonnetz_m{i}" for i in range(6)] + [f"tonnetz_s{i}" for i in range(6)])
 
 
+def fix_length(y, n_samples=config.CNN_N_SAMPLES, offset=None):
+    """Crop or zero-pad to n_samples. offset=None centres the clip; an int places it
+    (crop start if too long, pad-before if too short)."""
+    gap = abs(len(y) - n_samples)
+    start = gap // 2 if offset is None else min(max(offset, 0), gap)
+    if len(y) >= n_samples:
+        return y[start:start + n_samples]
+    return np.pad(y, (start, n_samples - len(y) - start))
+
+
+def log_mel_spectrogram(y, sr=config.SAMPLE_RATE):
+    """Fixed-length audio -> (64, 603) log-mel scaled to roughly [0, 1]."""
+    mel = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=config.CNN_N_FFT,
+                                         hop_length=config.CNN_HOP, n_mels=config.N_MELS_CNN)
+    log_mel = librosa.power_to_db(mel, ref=np.max, top_db=80.0)
+    return ((log_mel + 80.0) / 80.0).astype(np.float32)
+
+
 def _features_for_file(filepath):
     try:
         return extract_features(load_audio(filepath))

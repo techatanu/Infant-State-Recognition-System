@@ -27,6 +27,14 @@ WIN_LENGTH = int(SAMPLE_RATE * 0.025)   # 25 ms -> 551
 N_MELS_RF = 40
 N_FEATURES = 218
 
+# CNN log-mel input
+N_MELS_CNN = 64
+CNN_N_FFT = 1024
+CNN_HOP = 256
+CNN_DURATION_SEC = 7.0                      # ~90% of trimmed clips are <= 7 s
+CNN_N_SAMPLES = int(SAMPLE_RATE * CNN_DURATION_SEC)
+CNN_N_FRAMES = 1 + CNN_N_SAMPLES // CNN_HOP  # 603
+
 # Cleaning rules
 TRIM_TOP_DB = 30
 MIN_TRIMMED_SEC = 1.0

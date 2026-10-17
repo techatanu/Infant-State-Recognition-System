@@ -9,3 +9,4 @@ soundfile==0.14.0
 matplotlib==3.11.2
 seaborn==0.13.2
 python-dotenv==1.2.4
+torch==2.14.1
