@@ -71,12 +71,12 @@ def test_nested_oof_covers_every_clip_and_learns_the_signal(data):
 @pytest.mark.filterwarnings("ignore::UserWarning")
 @pytest.mark.parametrize("name", list(MENU))
 def test_every_menu_model_fits_with_every_weighting(name, data):
-    from src.models import _fit
+    from src.models import fit
     index, X = data
     y = index["label"].to_numpy()
     for params in MENU[name][1]:
         if params.get("weight") in (None, "sqrt") or "weight" not in params:
-            _fit(name, params, X, y).predict_proba(X[:3])
+            fit(name, params, X, y).predict_proba(X[:3])
 
 
 @pytest.mark.filterwarnings("ignore::UserWarning")

@@ -84,7 +84,8 @@ MENU = {
 SAMPLE_WEIGHTED = {"hist_gradient_boosting"}
 
 
-def _fit(name, params, X, y):
+def fit(name, params, X, y):
+    """Fit one menu model with one grid point (and its class weighting) on X, y."""
     build, _ = MENU[name]
     weights = class_weights(y, params.get("weight"))
     fit_params = {}
@@ -100,7 +101,7 @@ def _fit(name, params, X, y):
     return model
 
 
-def _proba(model, X):
+def predict_proba(model, X):
     """Probabilities in CLASSES order (zero for classes absent from the training part)."""
     proba = np.zeros((len(X), len(CLASSES)))
     proba[:, [CLASSES.index(c) for c in model.classes_]] = model.predict_proba(X)
@@ -112,7 +113,8 @@ def corrected(proba, prior, tau):
     return np.argmax(np.log(np.clip(proba, 1e-12, 1)) - tau * np.log(prior), axis=1)
 
 
-def _prior(y):
+def class_prior(y):
+    """Class shares of y in CLASSES order, as used by the prior-corrected rule."""
     counts = pd.Series(y).value_counts().reindex(CLASSES, fill_value=0).to_numpy()
     return np.maximum(counts, 0.5) / counts.sum()      # absent class: tiny prior, never divides by 0
 
@@ -120,7 +122,7 @@ def _prior(y):
 def tune(name, X, y, groups, seed=0):
     """Choose (params, tau) on grouped inner CV of one training part. Returns a dict per variant."""
     _, grid = MENU[name]
-    t, prior = encode(y), _prior(y)
+    t, prior = encode(y), class_prior(y)
     with warnings.catch_warnings():     # a class with 2 clips cannot be in all 3 inner folds; expected
         warnings.filterwarnings("ignore", message="The least populated class")
         splits = list(inner_cv(seed).split(X, y, groups=groups))
@@ -128,7 +130,7 @@ def tune(name, X, y, groups, seed=0):
     for params in grid:
         proba = np.zeros((len(y), len(CLASSES)))
         for tr, va in splits:
-            proba[va] = _proba(_fit(name, params, X[tr], y[tr]), X[va])
+            proba[va] = predict_proba(fit(name, params, X[tr], y[tr]), X[va])
         for tau in TAUS:
             score = balanced_accuracy(t, corrected(proba, prior, tau))
             for variant in VARIANTS:
@@ -147,12 +149,12 @@ def _outer_split(name, X, y, groups, repeat, k, train, test, seed):
 
 def _outer_split_body(name, X, y, groups, repeat, k, train, test, seed):
     choice = tune(name, X[train], y[train], groups[train], seed)
-    prior = _prior(y[train])
+    prior = class_prior(y[train])
     out, fitted = {}, {}
     for variant, c in choice.items():
         key = repr(c["params"])
         if key not in fitted:
-            fitted[key] = _proba(_fit(name, c["params"], X[train], y[train]), X[test])
+            fitted[key] = predict_proba(fit(name, c["params"], X[train], y[train]), X[test])
         proba = fitted[key]
         part = pd.DataFrame(proba, columns=PROBA_COLS)
         part.insert(0, "y_pred", np.array(CLASSES)[corrected(proba, prior, c["tau"])])

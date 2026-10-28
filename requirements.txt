@@ -1,4 +1,4 @@
-# Notebooks 01-05 and tests (versions they were run with)
+# Notebooks 01-06 and tests (versions they were run with)
 numpy==2.4.6
 pandas==3.0.3
 scipy==1.18.0

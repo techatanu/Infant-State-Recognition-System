@@ -14,7 +14,7 @@ The full plan (architecture, evaluation protocol, build order) is in
 | [`03_feature_engineering.ipynb`](notebooks/03_feature_engineering.ipynb): feature set and recording-format leak test | done |
 | [`04_evaluation_protocol.ipynb`](notebooks/04_evaluation_protocol.ipynb): grouped cross-validation folds, metrics, baselines | done |
 | [`05_machine_learning.ipynb`](notebooks/05_machine_learning.ipynb): five classical models under grouped nested CV | done |
-| `06_error_analysis.ipynb`: what the best model gets wrong | planned |
+| [`06_error_analysis.ipynb`](notebooks/06_error_analysis.ipynb): what the best model gets wrong, and why | done |
 | `07_deep_learning.ipynb`: CNN on spectrograms (runs on Google Colab) | planned |
 | `08_conclusions.ipynb`: comparison and model card | planned |
 
@@ -114,6 +114,22 @@ argmax and a prior-corrected decision rule whose strength is also tuned:
   no top-3 accuracy beats the baseline's 0.900.
 - **Feature subsets and the full band** move the random forest between 0.127 and 0.140. No setting is
   clearly above majority; the highest, B+C at +0.015 (0.000, +0.031), is a post-hoc pick.
+
+Error analysis of the best model, random forest (notebook 06):
+
+- **It is an always-hungry classifier with small exceptions.** 89–100% of every other class's clips
+  are predicted *hungry*. Only *tired* is ever right (2.0 of 28 clips per repeat).
+- **No feature group matters.** Shuffling any group changes balanced accuracy by at most 0.006 ± 0.005 (MFCCs).
+- **Confidence says little.** It separates right from wrong with AUROC 0.549, and the probabilities are
+  under-confident (ECE 0.205).
+- **Babies with any non-hungry clip** are predicted correctly 32.1% of the time (51 babies), and 18 of
+  them are never right. Sex and age code make no visible difference.
+- **Some sources are probably not one baby.** 19 of 226 carry more than one sex or age code. One has 15
+  clips under 6 labels and accounts for 7 of the 12 most confident mistakes.
+- **The recording format leaks into the probabilities.** The six 44.1 kHz clips of *tired*, *discomfort*
+  and *burping* get more probability on the 44.1 kHz-only classes than their 8 kHz clips do: AUROC 0.81,
+  or 0.78–0.87 when each of the 4 babies is left out. It never changes a prediction, so 05's scores are not
+  inflated, but band-limiting did not remove it. The CNN in notebook 07 gets the same check.
 
 ## Setup
 
