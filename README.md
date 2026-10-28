@@ -12,13 +12,13 @@ The full plan (architecture, evaluation protocol, build order) is in
 | [`01_data_audit.ipynb`](notebooks/01_data_audit.ipynb): what the data really contains | done |
 | [`02_eda.ipynb`](notebooks/02_eda.ipynb): what the cries look like, and whether the classes differ | done |
 | [`03_feature_engineering.ipynb`](notebooks/03_feature_engineering.ipynb): feature set and recording-format leak test | done |
-| `04_evaluation_protocol.ipynb`: grouped cross-validation folds and baselines | planned |
+| [`04_evaluation_protocol.ipynb`](notebooks/04_evaluation_protocol.ipynb): grouped cross-validation folds, metrics, baselines | done |
 | `05_machine_learning.ipynb`: classical models | planned |
 | `06_error_analysis.ipynb`: what the best model gets wrong | planned |
 | `07_deep_learning.ipynb`: CNN on spectrograms (runs on Google Colab) | planned |
 | `08_conclusions.ipynb`: comparison and model card | planned |
 
-No model results are reported yet.
+No tuned model results are reported yet.
 
 ## Data
 
@@ -84,6 +84,20 @@ Findings from notebook 03:
   AUROC 0.86 with full-band features, 0.82 band-limited to 150–3800 Hz, and 0.76 without the per-band
   means. This is based on only 6 such clips from 4 babies. The band-limited features are the default; notebook 06
   checks whether the class model actually uses this trace.
+
+Evaluation protocol (notebook 04), used unchanged by every model:
+
+- **25 splits:** 5 folds grouped by baby and stratified by label, repeated with 5 seeds, saved in
+  [`metadata/folds.csv`](metadata/folds.csv). Metrics are computed on the pooled out-of-fold
+  predictions of each repeat and reported as mean ± std over repeats, with 95% intervals from a
+  bootstrap that resamples babies.
+- **Baselines** (balanced accuracy / macro-F1): majority 0.125 / 0.111, prior-random 0.132 / 0.132.
+  Top-3 accuracy is already 0.900 from listing the three most common classes.
+- **Leakage matters.** One untuned logistic regression scores balanced accuracy 0.271 with
+  ordinary clip-level folds, but 0.125 when grouped by baby, which is no better than the baselines.
+  Clip-level numbers are therefore never reported as results.
+- **Noise floor.** Paired-bootstrap intervals are about 0.07 wide, so model differences below
+  roughly 0.035–0.04 balanced accuracy cannot be distinguished from noise.
 
 ## Setup
 
