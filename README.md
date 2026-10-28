@@ -4,11 +4,19 @@ Predict what a baby's cry is about (one of 8 parent-reported states) from a ~7 s
 first with classical machine learning, then with deep learning. The project is built as a
 sequence of notebooks, and every number in this README comes from running them.
 
+The full plan (architecture, evaluation protocol, build order) is in
+[`docs/PROJECT_PLAN.pdf`](docs/PROJECT_PLAN.pdf).
+
 | Notebook | Status |
 |---|---|
 | [`01_data_audit.ipynb`](notebooks/01_data_audit.ipynb): what the data really contains | done |
-| `02_machine_learning.ipynb`: hand-crafted audio features + classical models | in progress |
-| `03_deep_learning.ipynb`: CNN on spectrograms | planned |
+| [`02_eda.ipynb`](notebooks/02_eda.ipynb): what the cries look like, and whether the classes differ | done |
+| `03_feature_engineering.ipynb`: feature set and recording-format leak test | planned |
+| `04_evaluation_protocol.ipynb`: grouped cross-validation folds and baselines | planned |
+| `05_machine_learning.ipynb`: classical models | planned |
+| `06_error_analysis.ipynb`: what the best model gets wrong | planned |
+| `07_deep_learning.ipynb`: CNN on spectrograms (runs on Google Colab) | planned |
+| `08_conclusions.ipynb`: comparison and model card | planned |
 
 No model results are reported yet.
 
@@ -52,6 +60,19 @@ Findings from notebook 01:
 
 The list of clips used for modelling is in [`metadata/clean_index.csv`](metadata/clean_index.csv).
 
+Findings from notebook 02 (each class compared with one value per baby, not per clip):
+
+- **No single interpretable descriptor separates the classes.** Pitch, voicing, share of time
+  crying, burst and pause length and spectral centroid all have Kruskal–Wallis effect sizes of
+  ε² ≤ 0.014, and no test survives Holm correction. The largest hungry-vs-rest differences
+  (voicing, pitch) have corrected p = 0.29–0.30.
+- **Babies differ more than classes do.** Within *hungry*, the intra-class correlation of the
+  descriptors across babies is 0.12–0.43. This is why every split is grouped by baby.
+- **Some clips hold little or no crying.** 15 clips are voiced in under 10% of their cry frames,
+  and the least-voiced ones are steady noise.
+- **Possible format trace.** *cold_hot* and *lonely* (all originally 44.1 kHz) are 4–7 dB below
+  average at 3.5–4 kHz. Notebook 03 tests this directly.
+
 ## Setup
 
 ```bash
@@ -61,4 +82,9 @@ jupyter lab notebooks/
 ```
 
 Run the notebooks in order. Notebook 01 writes `metadata/clean_index.csv`, which the later
-notebooks read.
+notebooks read. Code shared by several notebooks lives in `src/`, and its tests use synthetic
+signals only, so they run without the dataset:
+
+```bash
+pytest
+```

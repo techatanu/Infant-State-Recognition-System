@@ -1,4 +1,4 @@
-# Notebooks 01-02 (versions they were run with)
+# Notebooks 01-02 and tests (versions they were run with)
 numpy==2.4.6
 pandas==3.0.3
 scipy==1.18.0
@@ -7,3 +7,4 @@ matplotlib==3.11.0
 python-dotenv==1.2.1
 tabulate==0.10.0
 jupyter==1.1.1
+pytest==9.0.3
