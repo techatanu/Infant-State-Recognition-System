@@ -11,7 +11,7 @@ The full plan (architecture, evaluation protocol, build order) is in
 |---|---|
 | [`01_data_audit.ipynb`](notebooks/01_data_audit.ipynb): what the data really contains | done |
 | [`02_eda.ipynb`](notebooks/02_eda.ipynb): what the cries look like, and whether the classes differ | done |
-| `03_feature_engineering.ipynb`: feature set and recording-format leak test | planned |
+| [`03_feature_engineering.ipynb`](notebooks/03_feature_engineering.ipynb): feature set and recording-format leak test | done |
 | `04_evaluation_protocol.ipynb`: grouped cross-validation folds and baselines | planned |
 | `05_machine_learning.ipynb`: classical models | planned |
 | `06_error_analysis.ipynb`: what the best model gets wrong | planned |
@@ -72,6 +72,18 @@ Findings from notebook 02 (each class compared with one value per baby, not per 
   and the least-voiced ones are steady noise.
 - **Possible format trace.** *cold_hot* and *lonely* (all originally 44.1 kHz) are 4–7 dB below
   average at 3.5–4 kHz. Notebook 03 tests this directly.
+
+Findings from notebook 03:
+
+- **225 features per clip** in six groups (log-mel bands, MFCC with deltas, spectral shape, pitch
+  and voicing, rhythm, energy dynamics), computed over cry frames only and with no absolute
+  loudness. None of them differs between classes on its own after Holm correction (largest
+  ε² = 0.038).
+- **The recording format still shows through.** A format detector trained on other classes ranks
+  the 44.1 kHz clips of *tired*, *discomfort* and *burping* above most 8 kHz clips of the same classes:
+  AUROC 0.86 with full-band features, 0.82 band-limited to 150–3800 Hz, and 0.76 without the per-band
+  means. This is based on only 6 such clips from 4 babies. The band-limited features are the default; notebook 06
+  checks whether the class model actually uses this trace.
 
 ## Setup
 
