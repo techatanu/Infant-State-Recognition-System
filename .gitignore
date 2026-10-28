@@ -1,20 +1,19 @@
 # macOS
 .DS_Store
-Icon
 
-# Python
+# Python / Jupyter
 __pycache__/
 *.py[cod]
 .venv/
 venv/
-.pytest_cache/
 .ipynb_checkpoints/
 
 # Secrets / local config
 .env
 
-# Data: the dataset lives outside the repo; never commit audio or caches
-data/
+# Audio and derived caches stay out of the repo (dataset lives outside it)
 *.wav
+data/
 
-# Large model files (>50 MB) are ignored individually; small ones are committed
+# Trained model files
+models/
