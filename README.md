@@ -13,12 +13,12 @@ The full plan (architecture, evaluation protocol, build order) is in
 | [`02_eda.ipynb`](notebooks/02_eda.ipynb): what the cries look like, and whether the classes differ | done |
 | [`03_feature_engineering.ipynb`](notebooks/03_feature_engineering.ipynb): feature set and recording-format leak test | done |
 | [`04_evaluation_protocol.ipynb`](notebooks/04_evaluation_protocol.ipynb): grouped cross-validation folds, metrics, baselines | done |
-| `05_machine_learning.ipynb`: classical models | planned |
+| [`05_machine_learning.ipynb`](notebooks/05_machine_learning.ipynb): five classical models under grouped nested CV | done |
 | `06_error_analysis.ipynb`: what the best model gets wrong | planned |
 | `07_deep_learning.ipynb`: CNN on spectrograms (runs on Google Colab) | planned |
 | `08_conclusions.ipynb`: comparison and model card | planned |
 
-No tuned model results are reported yet.
+So far no model beats the majority-class baseline when tested on babies it has not seen (notebook 05).
 
 ## Data
 
@@ -99,6 +99,22 @@ Evaluation protocol (notebook 04), used unchanged by every model:
 - **Noise floor.** Paired-bootstrap intervals are about 0.07 wide, so model differences below
   roughly 0.035–0.04 balanced accuracy cannot be distinguished from noise.
 
+Classical models (notebook 05). Logistic regression, kNN, RBF SVM, random forest and gradient boosting
+were tuned by grouped inner CV inside each of the 25 outer splits. Each comes in two variants, plain
+argmax and a prior-corrected decision rule whose strength is also tuned:
+
+- **None beats the baselines.** Balanced accuracy is 0.103–0.131 across the 10 variants (majority
+  0.125). Every paired 95% interval against majority includes 0. The best, random forest (argmax),
+  scores 0.131 (95% CI 0.123–0.152), +0.006 (−0.002, +0.016) vs majority.
+- **The models fall back on *hungry*.** The argmax variants reach 0.78–0.80 accuracy (majority 0.797).
+  In the best model, *tired* is the only minority class with any correct predictions (recall 0.071).
+- **Prior correction hurts.** It lowers balanced accuracy for 4 of 5 models, although the inner loop
+  scores the chosen settings at 0.136–0.173. This is selection optimism on very small classes.
+- **No ranking signal.** One-vs-rest AUROCs are 0.23–0.60, no log-loss beats the prior's 0.887, and
+  no top-3 accuracy beats the baseline's 0.900.
+- **Feature subsets and the full band** move the random forest between 0.127 and 0.140. No setting is
+  clearly above majority; the highest, B+C at +0.015 (0.000, +0.031), is a post-hoc pick.
+
 ## Setup
 
 ```bash
@@ -108,7 +124,7 @@ jupyter lab notebooks/
 ```
 
 Run the notebooks in order. Notebook 01 writes `metadata/clean_index.csv`, which the later
-notebooks read. Code shared by several notebooks lives in `src/`, and its tests use synthetic
+notebooks read. Notebook 05 takes about 12 minutes on an 11-core laptop. Code shared by several notebooks lives in `src/`, and its tests use synthetic
 signals only, so they run without the dataset:
 
 ```bash

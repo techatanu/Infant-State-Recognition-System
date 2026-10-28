@@ -62,3 +62,14 @@ def test_oof_predict_gives_one_row_per_clip_per_repeat(index):
     proba = pred[[f"p_{c}" for c in CLASSES]].to_numpy()
     np.testing.assert_allclose(proba.sum(axis=1), 1)
     assert set(pred["y_pred"]) <= set(CLASSES)
+
+
+def test_saved_predictions_keep_tiny_probabilities(index, tmp_path, monkeypatch):
+    import src.splits as splits
+    monkeypatch.setattr(splits, "PREDICTIONS_DIR", tmp_path)
+    pred = pd.DataFrame({"clip": [0, 1], "repeat": "r0", "fold": 0, "y_true": "hungry", "y_pred": "hungry"})
+    for c in CLASSES:
+        pred[f"p_{c}"] = [1e-9, 0.123456789]
+    splits.save_predictions("tiny", pred, index)
+    back = splits.load_predictions("tiny", index)
+    np.testing.assert_allclose(back[f"p_{CLASSES[0]}"], [1e-9, 0.123457], rtol=1e-5)

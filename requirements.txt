@@ -1,8 +1,10 @@
-# Notebooks 01-04 and tests (versions they were run with)
+# Notebooks 01-05 and tests (versions they were run with)
 numpy==2.4.6
 pandas==3.0.3
 scipy==1.18.0
 scikit-learn==1.9.0
+joblib==1.5.3
+threadpoolctl==3.5.0
 matplotlib==3.11.0
 python-dotenv==1.2.1
 tabulate==0.10.0

@@ -96,7 +96,8 @@ def save_predictions(name, predictions, index):
     """Write out-of-fold predictions to results/predictions/<name>.csv (keyed by clip path)."""
     PREDICTIONS_DIR.mkdir(parents=True, exist_ok=True)
     out = predictions.assign(path=index["path"].to_numpy()[predictions["clip"]]).drop(columns="clip")
-    out.to_csv(PREDICTIONS_DIR / f"{name}.csv", index=False, float_format="%.5f")
+    # 6 significant digits, not fixed decimals: rounding a tiny probability to 0 would inflate log-loss
+    out.to_csv(PREDICTIONS_DIR / f"{name}.csv", index=False, float_format="%.6g")
 
 
 def load_predictions(name, index):
