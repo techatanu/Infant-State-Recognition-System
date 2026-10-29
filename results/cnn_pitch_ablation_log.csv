@@ -1,0 +1,6 @@
+variant,seed,fit_clips,val_clips,val_babies,best_epoch,epochs_run,best_val_balanced_ce,seconds,pitch_shift_bands,tag,repeat,fold,commit,device
+weighted_loss,0,304,78,36,0,16,2.092240333557129,6.368776321411133,2,weighted_loss_pitch,r0,0,3fd3a12,cuda
+weighted_loss,1,303,81,35,0,16,2.1853995323181152,6.351047039031982,2,weighted_loss_pitch,r0,1,3fd3a12,cuda
+weighted_loss,2,306,79,36,0,16,2.218245029449463,6.431922674179077,2,weighted_loss_pitch,r0,2,3fd3a12,cuda
+weighted_loss,3,301,81,37,11,27,1.992682695388794,10.587798118591309,2,weighted_loss_pitch,r0,3,3fd3a12,cuda
+weighted_loss,4,304,79,37,0,16,2.2754266262054443,6.407196521759033,2,weighted_loss_pitch,r0,4,3fd3a12,cuda

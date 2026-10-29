@@ -15,10 +15,10 @@ The full plan (architecture, evaluation protocol, build order) is in
 | [`04_evaluation_protocol.ipynb`](notebooks/04_evaluation_protocol.ipynb): grouped cross-validation folds, metrics, baselines | done |
 | [`05_machine_learning.ipynb`](notebooks/05_machine_learning.ipynb): five classical models under grouped nested CV | done |
 | [`06_error_analysis.ipynb`](notebooks/06_error_analysis.ipynb): what the best model gets wrong, and why | done |
-| [`07_deep_learning.ipynb`](notebooks/07_deep_learning.ipynb): CNN on spectrograms (runs on Google Colab) | ready, not run yet |
+| [`07_deep_learning.ipynb`](notebooks/07_deep_learning.ipynb): CNN on spectrograms (run on Google Colab, T4 GPU) | done |
 | `08_conclusions.ipynb`: comparison and model card | planned |
 
-So far no model beats the majority-class baseline when tested on babies it has not seen (notebook 05).
+So far no model, classical (notebook 05) or CNN (notebook 07), beats the majority-class baseline when tested on babies it has not seen.
 
 ## Data
 
@@ -130,6 +130,17 @@ Error analysis of the best model, random forest (notebook 06):
   and *burping* get more probability on the 44.1 kHz-only classes than their 8 kHz clips do: AUROC 0.81,
   or 0.78–0.87 when each of the 4 babies is left out. It never changes a prediction, so 05's scores are not
   inflated, but band-limiting did not remove it. The CNN in notebook 07 gets the same check.
+
+CNN on log-mel spectrograms (notebook 07, run on a Colab T4):
+
+- **Nothing it learns transfers to new babies.** Early stopping kept the network after its first epoch in
+  most splits (median best epoch 0); after that the validation score only got worse.
+- **No gain over the baselines.** With the square-root weighted loss, balanced accuracy is 0.150 ± 0.013
+  (95% CI 0.113–0.206), +0.026 (−0.012, +0.073) vs majority. With the class-balanced sampler it is 0.136 ± 0.030.
+  Both are within the noise floor of the random forest's 0.131, and log-loss (1.715, 2.230) is worse than the prior's 0.887.
+- **Its one partly recognised class, *lonely*** (recall 0.400, precision 0.082), exists only as 44.1 kHz
+  recordings. The format check gives AUROC 0.65–0.71, lower than the random forest's 0.81 but not zero.
+- **A pitch-shift ablation** on one repeat changes balanced accuracy by +0.019 (−0.044, +0.123): no evidence either way.
 
 ## Setup
 
