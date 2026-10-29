@@ -15,7 +15,7 @@ The full plan (architecture, evaluation protocol, build order) is in
 | [`04_evaluation_protocol.ipynb`](notebooks/04_evaluation_protocol.ipynb): grouped cross-validation folds, metrics, baselines | done |
 | [`05_machine_learning.ipynb`](notebooks/05_machine_learning.ipynb): five classical models under grouped nested CV | done |
 | [`06_error_analysis.ipynb`](notebooks/06_error_analysis.ipynb): what the best model gets wrong, and why | done |
-| `07_deep_learning.ipynb`: CNN on spectrograms (runs on Google Colab) | planned |
+| [`07_deep_learning.ipynb`](notebooks/07_deep_learning.ipynb): CNN on spectrograms (runs on Google Colab) | ready, not run yet |
 | `08_conclusions.ipynb`: comparison and model card | planned |
 
 So far no model beats the majority-class baseline when tested on babies it has not seen (notebook 05).
@@ -146,3 +146,15 @@ signals only, so they run without the dataset:
 ```bash
 pytest
 ```
+
+`tests/test_cnn.py` needs PyTorch and is skipped without it. Notebook 07 runs them on Colab.
+
+### Notebook 07 on Google Colab
+
+1. `python scripts/make_colab_bundle.py` writes `data/colab/babycry_8k.zip` (the 479 clean clips at 8 kHz
+   mono, about 43 MB). Upload it to **My Drive/babycry/**.
+2. Open `notebooks/07_deep_learning.ipynb` in Colab, choose a T4 GPU runtime and run all cells. If the
+   repository is private, first add a read-only GitHub token as the Colab secret `GITHUB_TOKEN`.
+3. Every split is saved to Drive as it finishes, so after a disconnect, running all cells again resumes.
+4. Download `My Drive/babycry/results/` (predictions and training logs) and the executed notebook into
+   this repository.

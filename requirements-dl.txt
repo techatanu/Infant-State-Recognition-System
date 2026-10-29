@@ -1,0 +1,4 @@
+# Notebook 07 extras on top of requirements.txt. Google Colab already ships torch, numpy, scipy,
+# pandas and scikit-learn; the notebook installs this file there and prints the versions it ran with.
+torch>=2.1
+python-dotenv
