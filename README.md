@@ -1,24 +1,57 @@
 # Infant Cry State Recognition
 
-Predict what a baby's cry is about (one of 8 parent-reported states) from a ~7 s audio clip,
-first with classical machine learning, then with deep learning. The project is built as a
-sequence of notebooks, and every number in this README comes from running them.
-
-The full plan (architecture, evaluation protocol, build order) is in
+Can a model tell what a baby's cry is about (one of 8 parent-reported states) from a ~7 s audio clip?
+This project tries classical machine learning and a CNN, built as a sequence of notebooks. Every number in
+this README comes from running them. The plan (architecture, evaluation protocol, build order) is in
 [`docs/PROJECT_PLAN.pdf`](docs/PROJECT_PLAN.pdf).
 
-| Notebook | Status |
-|---|---|
-| [`01_data_audit.ipynb`](notebooks/01_data_audit.ipynb): what the data really contains | done |
-| [`02_eda.ipynb`](notebooks/02_eda.ipynb): what the cries look like, and whether the classes differ | done |
-| [`03_feature_engineering.ipynb`](notebooks/03_feature_engineering.ipynb): feature set and recording-format leak test | done |
-| [`04_evaluation_protocol.ipynb`](notebooks/04_evaluation_protocol.ipynb): grouped cross-validation folds, metrics, baselines | done |
-| [`05_machine_learning.ipynb`](notebooks/05_machine_learning.ipynb): five classical models under grouped nested CV | done |
-| [`06_error_analysis.ipynb`](notebooks/06_error_analysis.ipynb): what the best model gets wrong, and why | done |
-| [`07_deep_learning.ipynb`](notebooks/07_deep_learning.ipynb): CNN on spectrograms (run on Google Colab, T4 GPU) | done |
-| `08_conclusions.ipynb`: comparison and model card | planned |
+## Result
 
-So far no model, classical (notebook 05) or CNN (notebook 07), beats the majority-class baseline when tested on babies it has not seen.
+**With this dataset, no model recognises the states on babies it has not heard.** Every model was scored on
+the same 25 splits, grouped by baby so that no baby is in both training and test. None of them is
+distinguishable from always answering *hungry* ([notebook 08](notebooks/08_conclusions.ipynb)):
+
+| model | balanced accuracy (95% CI) | vs always-*hungry* (95% CI) | macro-F1 | log-loss |
+|---|---|---|---|---|
+| always *hungry* (baseline) | 0.125 (0.125–0.143) | — | 0.111 | 0.887 |
+| random by class share (baseline) | 0.132 (0.119–0.151) | +0.006 (−0.007, +0.022) | 0.132 | 0.887 |
+| logistic regression | 0.125 (0.109–0.160) | +0.002 (−0.017, +0.026) | 0.124 | 1.542 |
+| k-nearest neighbours | 0.126 (0.122–0.145) | +0.001 (−0.003, +0.006) | 0.115 | 4.883 |
+| SVM (RBF) | 0.125 (0.124–0.143) | −0.000 (−0.001, +0.000) | 0.111 | 0.891 |
+| random forest | 0.131 (0.123–0.152) | +0.006 (−0.002, +0.016) | 0.125 | 1.213 |
+| gradient boosting | 0.126 (0.123–0.144) | +0.001 (−0.002, +0.005) | 0.114 | 1.619 |
+| CNN on log-mel, weighted loss | 0.150 (0.113–0.206) | +0.026 (−0.012, +0.073) | 0.115 | 1.715 |
+| CNN on log-mel, balanced sampler | 0.136 (0.099–0.177) | +0.010 (−0.026, +0.047) | 0.054 | 2.230 |
+
+The prior-corrected variants of the classical models score 0.103–0.128, lower than plain argmax for 4 of the 5. The full table, with MCC,
+top-3 accuracy and comparisons with the random forest, is in notebook 08 and
+[`results/final_scores.csv`](results/final_scores.csv). Differences below about 0.035–0.04 balanced accuracy
+are within noise (notebook 04).
+
+- **Why it looked better before.** With ordinary clip-level folds, an untuned logistic regression scores
+  0.271. Babies differ more than classes do (notebook 02), so a model that has heard a baby before can lean on
+  that baby's voice rather than the state.
+- **The models fall back on *hungry*** (382 of 479 clips). The CNN learnt its training babies: its validation
+  loss rose from the first epoch while its training loss fell.
+- **The one class with apparent signal, *lonely*, is confounded with the recording format.** Every *lonely* clip
+  is a 44.1 kHz recording, and the CNNs also predict *lonely* more often for 44.1 kHz clips of other classes.
+- **The result does not depend on one odd source.** Without the 15 clips of the most inconsistent source,
+  every model's balanced accuracy moves by at most 0.003.
+- **What it does not show:** that cries carry no information. The other seven classes come from only 3–17
+  babies each, labels are parents' guesses, and three classes are tied to one recording format. Notebook 08
+  lists what data would be needed, and has a short model card. These models are **not** for telling anyone
+  why a baby is crying.
+
+| Notebook | What it answers |
+|---|---|
+| [`01_data_audit.ipynb`](notebooks/01_data_audit.ipynb) | what the data really contains |
+| [`02_eda.ipynb`](notebooks/02_eda.ipynb) | what the cries look like, and whether the classes differ |
+| [`03_feature_engineering.ipynb`](notebooks/03_feature_engineering.ipynb) | feature set and recording-format leak test |
+| [`04_evaluation_protocol.ipynb`](notebooks/04_evaluation_protocol.ipynb) | grouped cross-validation folds, metrics, baselines |
+| [`05_machine_learning.ipynb`](notebooks/05_machine_learning.ipynb) | five classical models under grouped nested CV |
+| [`06_error_analysis.ipynb`](notebooks/06_error_analysis.ipynb) | what the best classical model gets wrong, and why |
+| [`07_deep_learning.ipynb`](notebooks/07_deep_learning.ipynb) | a CNN on spectrograms (run on Google Colab, T4 GPU) |
+| [`08_conclusions.ipynb`](notebooks/08_conclusions.ipynb) | all models compared, what can be claimed, model card |
 
 ## Data
 
@@ -26,7 +59,9 @@ So far no model, classical (notebook 05) or CNN (notebook 07), beats the majorit
 `lonely`, `scared`, `tired`. Labels were entered by parents in a crowd-sourced app, so they are
 noisy and there is no known ceiling for accuracy. The audio is not stored in this repo.
 
-Findings from notebook 01:
+## Findings, notebook by notebook
+
+Notebook 01 (data audit):
 
 | class | files | generated copies | label mismatch | **clean clips** | sources |
 |---|---|---|---|---|---|
